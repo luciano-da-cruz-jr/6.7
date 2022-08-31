@@ -1,0 +1,1 @@
+mongodb+srv://admin:<password>@encurtadorurl.p4chkz8.mongodb.net/?retryWrites=true&w=majority
