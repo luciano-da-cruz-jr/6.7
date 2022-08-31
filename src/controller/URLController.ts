@@ -1,24 +1,32 @@
 import { Request, Response } from 'express'
 import shortId from 'shortid'
 import { config } from '../config/Constants'
+import { URLModel } from '../database/model/URL'
 
 export class URLController {
     public async shorten(req: Request, response: Response): Promise<void> {
         const { originURL } = req.body
+        const url = await URLModel.findOne({ originURL })
+        if (url) {
+            response.json(url)
+            return
+        }
         const hash = shortId.generate()
         const shortURL = `${config.API_URL}/${hash}`
+        const newURL = await URLModel.create({ hash, shortURL, originURL })
 
-        response.json({ originURL, hash, shortURL })
+        response.json({ newURL })
     }
 
     public async redirect(req: Request, response: Response): Promise<void> {
         const { hash } = req.params
-        const url = {
-            originURL: 'https://web.dio.me/lab/construindo-encurtador-de-url/learning/81293ff9-4445-4ed9-8973-3223b2cb8eba',
-	        hash: '0kSix2M5X',
-	        shortURL: 'http://localhost:5000/0kSix2M5X'
+        const url = await URLModel.findOne({ hash })
+        
+        if(url){
+            response.redirect(url.originURL)
+            return
         }
 
-        response.redirect(url.originURL)
+        response.status(400).json({ error: 'URL not found '})
     }
 }
